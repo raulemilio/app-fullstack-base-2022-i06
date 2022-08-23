@@ -159,40 +159,178 @@ Falta completar
 
 ### Agregar un dispositivo
 
-Completá los pasos para agregar un dispositivo desde el cliente web.
+Lo que pude realizar es hacer funcionar la base de datos y desde la misma agregar, eliminar o actualizar dispositivos. Pero no pude agregar desde el cliente dispositivos. Es decir logre hacer un post pero limitado.
 
 ### Frontend
 
-Completá todos los detalles sobre cómo armaste el frontend, sus interacciones, etc.
+En en este punto hice una lista de dispositivos que se actualiza a partir de la consulta realizada al Backend. Esta lista de dispositivos se solicita a partir de un métido get al backend. El Backend por medio de una consulta Sql recupera la información de los dispositivos y los expone en /device desde donde el frontend recupera la información. La lista de dispositivos es dinámica, es decir se completa en función de la cantidad de dispositivos disponibles en la base de datos.
+
+En el archivo index.html se observa la estructura principal.
+Es importante notar que este archivo se completa con el archivo main.ts 
+En esta porción de código se puede observar que divDevices es el elemento tipo div donde se visualizan los dispostivos de forma dinámica.
+El elemento inputDescripcion es el que permite actualizar la descripción del dispositivo 1 cuando se produce un evendo de click del botón btn1
+            <!-- Page Body -->
+            <div class="container">
+                <h3 id="btnDoble">Smart Home Web Client!</h3>
+                <br/>
+                <!-- en este div esta la lista de devices -->
+                <div id="divDevices" style="background-color: red;"> 
+                </div>
+                  <div class="row">
+                    <form class="col s12">
+                      <div class="row">
+                        <div class="input-field col s6">
+                          <i class="material-icons prefix">autorenew</i>
+                          <input id="inputDescripcion" type="tel" class="validate">
+                          <label for="icon_telephone">Actualizar Descripción</label>
+                        </div>
+                        <div class="input-field col s6">
+                         <!-- button -->
+                         <a class="waves-effect waves-light btn" id="btn1">Actualizar Lampara 1</a>
+                          </div>
+                      </div>
+                    </form>
+                  </div>
+            </div>	
+        </main>
+
+Por otro lado el estado de los dispositivos esta cargado a partir de un checkbox en cada dispositivo. Este se actualiza según el estado cargado en la base de datos.
+
+Por último se cuenta con un botón (btn1) que permite actualizar la descripción del dispositivo 1. Mi intención era actualizar todos los parámetros de cualquier dispositivo pero no pude lograrlo y se me terminaba el plazo de entrega del trabajo práctico. Sin embargo logré al menos hacer esta actualización con un parámetro. Al presionar el botón, el Frontend recupera que se ha disparado un evento "click". De esta manera se recupera la información cargada en el elemnto HTMl input denominado inputDescription y esta información se envia por medio de un método post para ser utilizada por el backend. 
+
+En el archivo main.ts se encuentra la función handlerResponse que me permite hacer la carga dinámica de la información de los dispositivos en el html a partir del método get consultado al backend:
+
+    public handlerResponse(status: number, response: string) {
+        if (status == 200) {
+            let resputaString: string = response;
+            let respuesta: Array<Device> = JSON.parse(resputaString);
+            let divDevices = document.getElementById("divDevices");
+
+            let datosVisuale:string = `<ul class="collection">`
+            for (let disp of respuesta) {
+                datosVisuale += ` <li class="collection-item avatar">`;
+                if (disp.type == 1) {
+                    datosVisuale += `<img src="../static/images/lightbulb.png" alt="" class="circle">`;
+                } else if (disp.type == 0) {
+                    datosVisuale += `<img src="../static/images/window.png" alt="" class="circle">`;
+                }
+                
+                datosVisuale += `<span class="title nombreDisp">${disp.name}</span>
+                <p>${disp.description}
+                </p>
+
+                <a href="#!" class="secondary-content">
+                <div class="switch">
+                <label>
+                  Off`
+                  if (disp.state == true) {
+                    datosVisuale += `<input type="checkbox" checked id="cb_${disp.id} ">`;
+                } else if (disp.state == false){ 
+                    datosVisuale += `<input type="checkbox" id="cb_${disp.id} ">`;
+                }
+                datosVisuale += `<span class="lever"></span>
+                  On
+                </label>
+              </div>
+                </a>
+              </li>`
+            }
+            datosVisuale += `</ul>`
+            divDevices.innerHTML = datosVisuale;
+
+            //agregamos evento al botón actualizar
+            let btn=document.getElementById("btn1");
+            btn.addEventListener("click",this);
+        
+          } else {
+              alert("Algo salio mal")
+          }
+    }
+    handlerResponseActualizar(status: number, response: string) {
+        if (status == 200) {
+            alert("Se acutlizo correctamente")    
+        } else {
+            alert("Error")    
+        }
+        
+    }
+    public handleEvent(e:Event): void {
+        let objetoEvento = <HTMLElement>e.target;
+      
+        if (e.type == "click") {
+
+            console.log("Se hizo click para prender o apagar");
+            let inputElemento= <HTMLInputElement>this.framework.recuperarElemento("inputDescripcion");
+            let datos = { "id": 1, "description": inputElemento.value};
+            console.log(datos);
+            this.framework.ejecutarRequest("POST","http://localhost:8000/devices", this,datos)
+            
+        }
+    }
+}
+
+Además se detalla la porción de código donde se configura la captura del evento de botón:
+            //agregamos evento al botón actualizar
+            let btn=document.getElementById("btn1");
+            btn.addEventListener("click",this);
+            
+La porción de código que permite actualizar en la base de datos el dispositivo 1, es decir realizar un post se detalla acontinuación:
+
+    public handleEvent(e:Event): void {
+        let objetoEvento = <HTMLElement>e.target;
+      
+        if (e.type == "click") {
+
+            console.log("Se hizo click para prender o apagar");
+            let inputElemento= <HTMLInputElement>this.framework.recuperarElemento("inputDescripcion");
+            let datos = { "id": 1, "description": inputElemento.value};
+            console.log(datos);
+            this.framework.ejecutarRequest("POST","http://localhost:8000/devices", this,datos)
+                        
 
 ### Backend
 
-Completá todos los detalles de funcionamiento sobre el backend, sus interacciones con el cliente web, la base de datos, etc.
+Si bien toda la información se envia en formato string, tanto en el Frontend como en el backend se trabajo la información de los dispositivos en formato .Json. En el backend se cuenta principalmente con dos métodos, uno para trabajar las peticiones del cliente (get) y otro para trabajar los update (post). En mi caso el método post recupera la descripción de un dispositivo (solo el 1 por ahora) realiza en  el cliente al presionar el btn1 y por medio de una query a la base de datos actualiza el dispositivo:
+
+app.post('/devices/', function(req, res) {
+
+    utils.query("Update Devices set description=? where id=?",[req.body.description, req.body.id],function(err,respuesta){
+        if(err){
+            res.send(err).status(400);
+            return;
+        }
+        res.send(respuesta);
+    });
+    
+});
+
+Para recueprar los datos de los dispositivos se utliza el método get. Este método por medio de una consulta Select recupera toda la información disponible en la base de datos y la publica en el endpoint /device/ para ser consumida por el cliente. Esta información el cliente la vuelca en una tabla dinámica:
+
+app.get('/devices/', function(req, res) {
+    let consultaSQL="SELECT * FROM Devices";
+    utils.query(consultaSQL,function(err,respuesta){
+        if(err){
+            res.send(err).status(400);
+            return;
+        }
+        res.send(respuesta);
+    });
+    
+});
+
 
 <details><summary><b>Ver los endpoints disponibles</b></summary><br>
 
-Completá todos los endpoints del backend con los metodos disponibles, los headers y body que recibe, lo que devuelve, ejemplos, etc.
+Los endipoints utilizados son:
+cliente: 
+http://localhost:8000/
+para servidor:
+http://localhost:8000/devices
 
 1) Devolver el estado de los dispositivos.
 
-```json
-{
-    "method": "get",
-    "request_headers": "application/json",
-    "request_body": "",
-    "response_code": 200,
-    "request_body": {
-        "devices": [
-            {
-                "id": 1,
-                "status": true,
-                "description": "Kitchen light"
-            }
-        ]
-    },
-}
-``` 
-
+Por último comento que aunque no he logrado hacer un post con toda la información si pude avanzar en trabajar con los datos de forma local y migrar a trabajarlos con la base de datos. Este último punto me resultó bastante complicado hacer andar por errores que comentía en las consultas sql realizadas y me hizo perder bastante tiempo. 
+Otra dificultad que tuve fue al realizar la actualización de los dispositivos en el cliente, me constó bastante la integración de los elementos de html con los eventos que producen. Creo que en este punto me demoré bastante porque no podía darme cuenta porque no me funcionaban los eventos como los click de botón.
 </details>
 
 </details>
