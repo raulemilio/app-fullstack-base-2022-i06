@@ -11,20 +11,13 @@ class FrameWork{
             }
             }
     }
-
-
-    
-    
         xmlHttp.open(metodo, url, true);
         if (metodo == "POST") {
           xmlHttp.setRequestHeader("Content-Type", "application/json")
           xmlHttp.send(JSON.stringify(data))
         } else {
           xmlHttp.send();  
-        }
-    
-        
-     
+        }        
   }
 
   public recuperarElemento(id: string): HTMLElement{

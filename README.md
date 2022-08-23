@@ -153,6 +153,7 @@ En la siguiente ilustración podés ver cómo está organizado el proyecto para 
 ## Detalles de implementación 💻
 
 En esta sección podés ver los detalles específicos de funcionamiento del código y que son los siguientes.
+Falta completar
 
 <details><summary><b>Mira los detalles de implementación</b></summary><br>
 

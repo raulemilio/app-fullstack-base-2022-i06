@@ -11,41 +11,29 @@ app.use(express.json());
 // to serve static files
 app.use(express.static('/home/node/app/static/'));
 
-var  devices = [
-    { 
-        'id': 1, 
-        'name': 'Lampara 1', 
-        'description': 'Luz living', 
-        'state': 1, 
-        'type': 1, 
-    },
-    { 
-        'id': 2, 
-        'name': 'Ventilador 1', 
-        'description': 'Ventilador Habitacion', 
-        'state': 1, 
-        'type': 2, 
-    },
-];
-//=======[ Main module code ]==================================================
-app.post("/actualizar",function(req,res){
-    console.log("Llegue al servidor")
-    console.log(Object.keys(req.body).length)
-    if(req.body.id!=undefined&& req.body.state!=undefined){
-        console.log(req.body);
-        res.send("actualizo");
-    }else{
-        res.send("ERROR");
-    }
 
-   
-});
+//=======[ Main module code ]==================================================
 app.get('/devices/', function(req, res) {
-   
-    console.log("Alguien pidio divices!");
-    setTimeout(function(){
-        res.send(JSON.stringify(devices)).status(200);
-    }, 2000);
+    let consultaSQL="SELECT * FROM Devices";
+    utils.query(consultaSQL,function(err,respuesta){
+        if(err){
+            res.send(err).status(400);
+            return;
+        }
+        res.send(respuesta);
+    });
+    
+});
+
+app.post('/devices/', function(req, res) {
+
+    utils.query("Update Devices set description=? where id=?",[req.body.description, req.body.id],function(err,respuesta){
+        if(err){
+            res.send(err).status(400);
+            return;
+        }
+        res.send(respuesta);
+    });
     
 });
 
